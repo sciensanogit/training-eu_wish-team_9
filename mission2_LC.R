@@ -46,17 +46,76 @@ df$date <- format(df$date, "%Y-%m-%d")
 # compute viral ratio
 # unique(df$measure) ...
 
-# graph
+#Define the date column as date instead of strings
+df$date <- as.Date(df$date)
+
+# graph with the ratio calculated lower on the script
 plot <- df %>%
   filter(labProtocolID == "SC_COV_4.1") %>%
-  filter(measure == "SARS-CoV-2 E gene") %>%
-  filter(date > "2024-09-01" & date < "2025-09-01") %>%
+  filter(measure %in% c("SARS-CoV-2 E gene")) %>%
+  filter(date > "2024-06-24" & date < "2026-08-26") %>%
   filter(siteName %in% c("Aalst", "Oostende")) %>%
   ggplot(aes(x = date, y = value, group = siteName, color = siteName)) +
-  geom_point(na.rm = T) +
-  geom_line(na.rm = T)
+  geom_point(size = 2, na.rm = T, alpha = 0.2) +
+  geom_line(size = 1, na.rm = T, alpha = 0.2) +
+  geom_smooth() +
+  scale_color_manual(values = c("green4", "orange")) +
+  geom_hline(yintercept = Mean_Aalst, linetype = "dashed", size = 1, color = "green4") +
+  geom_hline(yintercept = Mean_Oostende, linetype = "dashed", size = 1, color = "orange")
+  
 
 plot
+
+#mean values
+
+Mean_Aalst <- mean(df$value[df$measure == "SARS-CoV-2 E gene" & 
+                df$siteName %in% c("Aalst") &
+                df$labProtocolID == "SC_COV_4.1"], 
+     na.rm = T)
+
+Mean_Oostende <- mean(df$value[df$measure == "SARS-CoV-2 E gene" & 
+                df$siteName %in% c("Oostende") &
+                df$labProtocolID == "SC_COV_4.1"], 
+     na.rm = T)
+
+
+
+#E gene, N1 and N2 into SARS
+
+df <- df %>% 
+  mutate(
+    measure_standardized = case_when(
+      measure %in% c("SARS-CoV-2 E gene", 
+                     "SARS-CoV-2 nucleocapsid gene, allele 2", 
+                     "SARS-CoV-2 nucleocapsid gene, allele 1"
+                     ) ~ "SARS-CoV-2", 
+      TRUE ~ measure
+      )
+    )
+
+#Ratio SARS/PMMoV
+
+library(dplyr)
+library(tidyr)
+
+df_ratio <- df %>%
+  select(siteName, date, measure_standardized, value) %>% 
+  pivot_wider(
+    names_from = measure_standardized,
+    values_from = value,
+    values_fn = mean
+  ) %>%
+  mutate(
+    ratio_SARS_vs_PMMoV =
+      ifelse(
+        is.na(`Pepper mild mottle virus capsid protein gene region`) |
+          `Pepper mild mottle virus capsid protein gene region` == 0,
+        NA,
+        `SARS-CoV-2` / `Pepper mild mottle virus capsid protein gene region`
+  )
+)
+
+#
 
 # save
 ggsave(file="./plot/graph_oostende_aalst.png",
