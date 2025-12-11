@@ -37,7 +37,7 @@ df <- df_sc %>%
 
 # clean data
 df <- df %>%
-  select(siteName, collDTStart, labName, labProtocolID, flowRate, popServ, measure, value)
+  select(siteName, collDTStart, labName, labProtocolID, flowRate, popServ, measure, value, quality)
 
 # format date
 df$date <- as.Date(df$date)
@@ -48,22 +48,114 @@ date_graph_start <- as.Date("2024-09-01", format = "%Y-%m-%d")
 date_graph_end <- as.Date("2025-12-01", format = "%Y-%m-%d")
 
 # subset sars and pmmv data based on labProtocolID used betwen date_start and date_end
+
+filtered_labprotocol <- c("SC_COV_4.1", "UA_COV_4.0", "SC_PMMV_2.1", "UA_PMMV_2.0")
+
+df_filt_protocol_dates <- df %>%
+  mutate(collDTStart = as.Date(collDTStart)) %>%
+  filter(
+    collDTStart >= date_graph_start,
+    collDTStart <= date_graph_end,
+    labProtocolID %in% filtered_labprotocol
+  )
+
+write.csv(df_filt_protocol_dates, "df_filt_protocol_dates.csv", row.names = FALSE)
+
+
+
+
 # display existing labProtocolID
 # unique(df$labProtocolID)
 
 # rename measures
+df_measure_renamed <- df_filt_protocol_dates %>%
+  mutate(
+    measure = case_when(
+      measure %in% c("SARS-CoV-2 E gene", "SARS-CoV-2 nucleocapsid gene, allele 2") ~ "SARS",
+      measure %in% c("Pepper mild mottle virus capsid protein gene region") ~ "PMMV",
+      TRUE ~ measure
+    )
+  )
+
+write.csv(df_measure_renamed, "df_measure_renamed.csv", row.names = FALSE)
+
+
 # diplay existing measure
 # unique(df$measure)
 
 # translate siteName to english
 
+df_sitename_translate <- df_measure_renamed %>%
+  mutate(
+    siteName = case_when(
+      siteName %in% c("Bruxelles-Sud") ~ "Brussels-South",
+      siteName %in% c("Bruxelles-Nord") ~ "Brussels-North",
+      TRUE ~ siteName
+    )
+  )
+
+write.csv(df_sitename_translate, "df_sitename_translate.csv", row.names = FALSE)
+
 # apply LOQ provided by the lab
+pmmv_loq <- 250
+sars_loq <- 8
+
+df_loq <- df_sitename_translate %>%
+  mutate(
+    value = case_when(
+      measure == "SARS" & value < sars_loq ~ NA_real_,
+      measure == "PMMV" & value < pmmv_loq ~ NA_real_,
+      TRUE ~ value
+    )
+  )
+
+write.csv(df_loq, "df_loq.csv", row.names = FALSE)
 
 # remove outliers
+filtered_quality <- c("No quality concern")
+
+df_filt_outlier <- df_loq %>%
+  filter(
+    quality == filtered_quality,
+    quality %in% filtered_quality
+  )
+
+
+write.csv(df_filt_outlier, "df_filt_outlier.csv", row.names = FALSE)
 
 # compute mean of replicated analysis of each measure
+df_mean <- df_filt_outlier %>%
+  mutate(collDTStart = as.Date(collDTStart)) %>%
+  group_by(siteName, measure, collDTStart) %>%
+  summarise(
+    mean_values = mean(value, na.rm = TRUE) %>% na_if(NaN),
+    .groups = "drop"
+  ) %>%
+  arrange(siteName, measure, collDTStart)
+
+write.csv(df_mean, "df_mean.csv", row.names = FALSE)
 
 # compute viral ratio
+
+
+df_viral_ratio <- df_mean %>%
+  pivot_wider(
+    names_from = measure,
+    values_from = mean_values
+  ) %>%
+  mutate(viral_ratio = SARS / PMMV)
+
+  pivot_longer(
+    cols = c(SARS, PMMV, viral_ratio),
+    names_to = "measure",
+    values_to = "value"
+  ) %>%
+  
+  arrange(siteName, collDTStart, measure)
+
+
+write.csv(df_viral_ratio, "df_viral_ratio.csv", row.names = FALSE)  
+    
 # unique(df$measure) ...
 
 # compute moving average on past 14 days
