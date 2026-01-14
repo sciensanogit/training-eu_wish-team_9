@@ -1,21 +1,4 @@
-# msg of sucess run
-cat("- This script was coded by member 1 \n")
-
-# msg of sucess run
-cat("- This script was coded by member 1 \n")
-
-# coding a line
-datana <- sum(1:10)
-datana2 <- sum(1:20)
-datana2
-
-install.packages("usethis")
-usethis::use_git_config(
-  user.name = "Iria",  # <-- Escribe tu nombre aquí
-  user.email = "iriagonzalez@usal.es" # <-- Escribe el email de tu cuenta de GitHub
-)
-
-##########################  Mission 2 - 01_  ############################### #
+############################################################################### #
 # Aim ----
 #| load data and produce first graph
 # NOTES:
@@ -23,13 +6,9 @@ usethis::use_git_config(
 #|
 ############################################################################### #
 
-
-############################################################################## #
-
-
-# Load packages 
+# Load packages ----
 # select packages
-pkgs <- c("dplyr", "tidyr", "zoo", "writexl", "ggplot2")
+pkgs <- c("dplyr", "ggplot2")
 # install packages
 install.packages(setdiff(pkgs, rownames(installed.packages())))
 invisible(lapply(pkgs, FUN = library, character.only = TRUE))
@@ -61,22 +40,24 @@ df <- df %>%
   select(siteName, collDTStart, labName, labProtocolID, flowRate, popServ, measure, value)
 
 # format date
-df$date <- as.Date(df$date)
+df$date <- as.POSIXct(df$collDTStart, format = "%Y-%m-%dT%H:%M:%S")
+df$date <- format(df$date, "%Y-%m-%d")
 
-# set and subset dates
-date_reporting <- as.Date("2025-09-01", format = "%Y-%m-%d")
-date_graph_start <- as.Date("2024-09-01", format = "%Y-%m-%d")
-date_graph_end <- as.Date("2025-12-01", format = "%Y-%m-%d")
+# compute viral ratio
+# unique(df$measure) ...
 
-# subset sars and pmmv data based on labProtocolID used betwen date_start and date_end
-# display existing labProtocolID
-# unique(df$labProtocolID)
+# graph
+plot <- df %>%
+  filter(labProtocolID == "SC_COV_4.1") %>%
+  filter(measure == "SARS-CoV-2 E gene") %>%
+  filter(date > "2024-09-01" & date < "2025-09-01") %>%
+  filter(siteName %in% c("Aalst", "Oostende")) %>%
+  ggplot(aes(x = date, y = value, group = siteName, color = siteName)) +
+  geom_point(na.rm = T) +
+  geom_line(na.rm = T)
 
-# rename measures
-# diplay existing measure
-# unique(df$measure)
+plot
 
-# translate siteName to english
-
-
-cat("- Success : data prep \n")
+# save
+ggsave(file="./plot/graph_oostende_aalst.png",
+       plot, width = 21, height = 12, dpi = 200)
