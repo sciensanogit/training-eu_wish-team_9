@@ -51,3 +51,5 @@ PlotPMMoVRatio_withpmmvAvg14d <- BelgiumExportNation %>%
   theme_minimal()
 
 PlotPMMoVRatio_withpmmvAvg14d
+
+
