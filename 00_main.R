@@ -28,6 +28,7 @@ source("mission1-member2.R")
 
 
 #Mission3
+install.packages("dplyr", "ggplot2", "flextable", "quarto")
 library("dplyr", "ggplot2", "flextable", "quarto")
 
 source("01_data_prep_RR.R")

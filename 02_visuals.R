@@ -10,8 +10,8 @@
 # select packages
 pkgs <- c("dplyr", "tidyr", "zoo", "writexl", "ggplot2")
 # install packages
-install.packages(setdiff(pkgs, rownames(installed.packages())))
-invisible(lapply(pkgs, FUN = library, character.only = TRUE))
+#install.packages(setdiff(pkgs, rownames(installed.packages())))
+#invisible(lapply(pkgs, FUN = library, character.only = TRUE))
 
 # load data
 
@@ -38,3 +38,4 @@ PlotPMMoVRatio_withpmmvAvg14d
 
 # display msg
 cat("- Success : visuals saved \n")
+
