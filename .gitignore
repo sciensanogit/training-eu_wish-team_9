@@ -34,7 +34,7 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 # files
-*.png
-*.csv
+.png
+.csv
 mission1-member1_IGM.R
 .Rhistory
