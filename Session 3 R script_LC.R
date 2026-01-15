@@ -52,4 +52,12 @@ PlotPMMoVRatio_withpmmvAvg14d <- BelgiumExportNation %>%
 
 PlotPMMoVRatio_withpmmvAvg14d
 
+## Adapt 00_main.R code to
+#- start doing this 45 min before the end of session2, to ensure having enough time.
+#- ask each team member to commit their change and push it to the online repository
 
+#- source 01_data_prep.R, 02_visuals.R, 03_tbl.R, and 04_quarto.R in the 00_main.R script
+check
+#- make sure to load all packages needed in 00_main.R only
+
+#- commit and push the modifications
