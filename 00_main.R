@@ -25,3 +25,13 @@ source("mission1-member1_IGM2.R")
 
 ## Source member 2 script ----
 source("mission1-member2.R")
+
+
+#Mission3
+install.packages("dplyr", "ggplot2", "flextable", "quarto")
+library("dplyr", "ggplot2", "flextable", "quarto")
+
+source("01_data_prep_RR.R")
+source("02_visuals.R")
+source("03_tbl.R")
+source("04_quarto.R")

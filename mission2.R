@@ -59,5 +59,5 @@ plot <- df %>%
 plot
 
 # save
-ggsave(file="./plot/graph_oostende_aalst.png",
+ggsave(file="./plots/graph_oostende_aalst.png",
        plot, width = 21, height = 12, dpi = 200)
